@@ -1,3 +1,4 @@
+from copy import deepcopy
 import dimacs
 from itertools import combinations
 import os
@@ -21,7 +22,8 @@ def vertex_cover_brute(graph):
     return False, None
 
 def vertex_cover_2k(graph):
-    def vertex_cover_rec_2k(edge_list, k, cover_set):
+    def vertex_cover_rec_2k(graph, k, cover_set):
+        edge_list = dimacs.edgeList(graph)
 
         for vertex_a, vertex_b in edge_list:
             if vertex_a not in cover_set and vertex_b not in cover_set:
@@ -34,10 +36,10 @@ def vertex_cover_2k(graph):
             return False, set()
 
         cover_set.add(selected_vec_a)
-        result_1, cover_set_1 = vertex_cover_rec_2k(delete_vertex(edge_list.copy(), selected_vec_a), k - 1, cover_set.copy())
+        result_1, cover_set_1 = vertex_cover_rec_2k(delete_vertex(deepcopy(graph), selected_vec_a), k - 1, cover_set.copy())
         cover_set.remove(selected_vec_a)
         cover_set.add(selected_vec_b)
-        result_2, cover_set_2 = vertex_cover_rec_2k(delete_vertex(edge_list.copy(), selected_vec_b), k - 1, cover_set.copy())
+        result_2, cover_set_2 = vertex_cover_rec_2k(delete_vertex(deepcopy(graph), selected_vec_b), k - 1, cover_set.copy())
 
         if result_1:
             return True, cover_set_1
@@ -46,9 +48,8 @@ def vertex_cover_2k(graph):
         return False, set()
 
     start_time = time.time()
-    edge_list = dimacs.edgeList(graph)
     for k in range(1, len(graph)):
-        result, cover_set = vertex_cover_rec_2k(edge_list, k, set())
+        result, cover_set = vertex_cover_rec_2k(graph, k, set())
         if result:
             return result, cover_set
         elif time.time() - start_time > 5:
@@ -59,9 +60,9 @@ def vertex_cover_2k(graph):
 
 if __name__ == "__main__":
     functions = {"brute": vertex_cover_brute, "rec_2k": vertex_cover_2k}
-    func_name = input("Select algorithm (brute, rec_2k) or pair (algorithm file): ")
+    func_name = input("Select algorithm (brute, rec_2k) or pair (algorithm, file): ")
 
-    func_name = func_name.split()
+    func_name = func_name.split(", ")
     if len(func_name) == 1:
         func_name = func_name[0]
         for file in os.listdir("graph\\"):
