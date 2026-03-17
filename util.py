@@ -1,5 +1,7 @@
-def delete_vertex(graph, vertex):
-    for u in graph[vertex].copy():
-        graph[vertex].remove(u)
-        graph[u].remove(vertex)
-    return graph
+def delete_vertex(edge_list, edge_mask, vertex):
+    deleted = []
+    for i, (vertex_a, vertex_b) in enumerate(edge_list):
+        if vertex_a == vertex or vertex_b == vertex:
+            edge_mask[i] = False
+            deleted.append(i)
+    return deleted
