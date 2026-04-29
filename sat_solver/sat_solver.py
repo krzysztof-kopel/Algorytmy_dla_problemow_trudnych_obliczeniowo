@@ -90,14 +90,42 @@ def solve_DPLL(cnf: list[list[int]]) -> tuple[dict[int, int] | str, int]:
         if valuation is None:
             valuation = {}
 
-        cnf_evaluated = simplify_cnf(cnf, valuation)
+        only_positives = set()
+        only_negatives = set()
+        all_vars = set()
+
+        next_valuation = valuation.copy()
+
+        for clause in cnf:
+            for variable in clause:
+                if variable and variable in only_negatives:
+                    only_negatives.remove(variable)
+                    continue
+                elif not variable and variable in only_positives:
+                    only_positives.remove(variable)
+                    continue
+
+                if variable and variable not in all_vars:
+                    only_positives.add(variable)
+                    all_vars.add(variable)
+                elif not variable and variable not in all_vars:
+                    only_negatives.add(variable)
+                    all_vars.add(variable)
+
+        for var in only_positives:
+            next_valuation[var] = 1
+
+        for var in only_negatives:
+            next_valuation[var] = -1
+
+        cnf_evaluated = simplify_cnf(cnf, next_valuation)
 
         if cnf_evaluated is None:
             return "UNSAT"
         elif not cnf_evaluated:
-            return valuation
+            return next_valuation
 
-        res = unit_propagate(cnf_evaluated, valuation)
+        res = unit_propagate(cnf_evaluated, next_valuation)
         if res is None:
             return "UNSAT"
         cnf_evaluated, valuation = res
