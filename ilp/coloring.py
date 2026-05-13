@@ -27,9 +27,13 @@ for vertex_row in variables:
 for ver_id, vertex in enumerate(graph):
     for neigh in vertex:
         for c in range(colors):
-            model += variables[ver_id][c] + variables[neigh][c] >= 1
+            model += variables[ver_id][c] + variables[neigh][c] <= 1
 
-model.solve(pl.PULP_CBC_CMD(msg=False))
+sol = model.solve(pl.PULP_CBC_CMD(msg=False))
+
+if sol == -1:
+    print("No solution")
+    exit(1)
 
 print("Solution: ")
 for i, vertex_row in enumerate(variables):
