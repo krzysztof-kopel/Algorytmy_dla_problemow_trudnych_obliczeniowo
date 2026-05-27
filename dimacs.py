@@ -65,10 +65,10 @@ def loadGRGraph( name ):
 
 class Bag:
   def __init__(self, id):
-    self.id = id
-    self.parent = None
-    self.children = set()
-    self.bag = None
+    self.id: int = id
+    self.parent: Bag = None
+    self.children: set[Bag] = set()
+    self.bag: set[int] = None
 
 
 
