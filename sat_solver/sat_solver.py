@@ -25,9 +25,6 @@ def solve_basic(cnf: list[list[int]]) -> tuple[dict[int, int] | str, int]:
     def solve_internal(cnf: list[list[int]], valuation: dict[int, int]) -> dict[int, int] | str:
         nonlocal recursive_calls
 
-        if valuation is None:
-            valuation = {}
-
         cnf_evaluated = simplify_cnf(cnf, valuation)
 
         if cnf_evaluated is None:
@@ -63,11 +60,11 @@ def solve_basic(cnf: list[list[int]]) -> tuple[dict[int, int] | str, int]:
     return solution, recursive_calls
 
 def unit_propagate(cnf: list[list[int]], valuation: dict[int, int]) -> tuple[list[list[int]], dict[int, int]] | None:
-    new_cnf = cnf.copy()
+    new_cnf = cnf
     any_changes = True
     while any_changes:
         any_changes = False
-        for clause in cnf:
+        for clause in new_cnf:
             if len(clause) == 1:
                 any_changes = True
                 if clause[0] in valuation and valuation[clause[0]] == -1:
@@ -78,7 +75,6 @@ def unit_propagate(cnf: list[list[int]], valuation: dict[int, int]) -> tuple[lis
                 new_cnf = simplify_cnf(new_cnf, valuation)
                 if new_cnf is None:
                     return None
-        cnf = new_cnf
     return new_cnf, valuation
 
 def solve_DPLL(cnf: list[list[int]]) -> tuple[dict[int, int] | str, int]:
@@ -98,19 +94,19 @@ def solve_DPLL(cnf: list[list[int]]) -> tuple[dict[int, int] | str, int]:
 
         for clause in cnf:
             for variable in clause:
-                if variable and variable in only_negatives:
+                if variable > 0 and variable in only_negatives:
                     only_negatives.remove(variable)
                     continue
-                elif not variable and variable in only_positives:
-                    only_positives.remove(variable)
+                elif variable < 0 and -variable in only_positives:
+                    only_positives.remove(-variable)
                     continue
 
-                if variable and variable not in all_vars:
+                if variable > 0 and variable not in all_vars:
                     only_positives.add(variable)
                     all_vars.add(variable)
-                elif not variable and variable not in all_vars:
-                    only_negatives.add(variable)
-                    all_vars.add(variable)
+                elif variable < 0 and -variable not in all_vars:
+                    only_negatives.add(-variable)
+                    all_vars.add(-variable)
 
         for var in only_positives:
             next_valuation[var] = 1
@@ -164,11 +160,11 @@ file_name = input("Enter file name: ")
 cnf = dimacs.loadCNF(f"example_sat\\{file_name}")[1]
 
 start = time()
-solution_basic = solve_basic(cnf.copy())
-print(f"Basic:\nRunning time (s): {time() - start}\nRecursive calls: {solution_basic[1]}\nSolution: {solution_basic[0]}")
-start = time()
 solution_dpll = solve_DPLL(cnf)
 print(f"DPLL:\nRunning time (s): {time() - start}\nRecursive calls: {solution_dpll[1]}\nSolution: {solution_dpll[0]}")
+start = time()
+solution_basic = solve_basic(cnf.copy())
+print(f"Basic:\nRunning time (s): {time() - start}\nRecursive calls: {solution_basic[1]}\nSolution: {solution_basic[0]}")
 
 if solution_basic[0] != solution_dpll[0]:
     print("WARNING: different solutions")
